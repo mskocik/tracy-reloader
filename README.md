@@ -1,5 +1,5 @@
-# Tracy Re;pader
-Tracy extension for automatic page update. Support for Server-sent Events and LiveReload.
+# Tracy Reloader
+Tracy extension for automatic page live update (LiveReload) or refresh (LiveReload and SSE).
 
 ## Installation
 ```
@@ -17,45 +17,58 @@ tracy:
 
 ## Config
 
-Extension supports 2 modes: `LiveReload` or `Server-sent Events`
+Extension supports 2 modes: `LiveReload` or `Server Sent Events`
 
 ### LiveReload
 
 ```php
 // minimal setup
-Common\Tracy\ReloadPanel('LR', [   
-    // these are default values
-    'https' => false,
-    'host' => null, // if null, will be set automatically by current domain
+Common\Tracy\ReloadPanel('LR', [
+    'https' => false,       // when accessing LiveReload server from https host
+    'host' => null,         // when NULL, pick visited hostname 
     'port' => 35729,
-    'path' => 'livereload'
+    'path' => 'livereload',
+    // internal
+    'excludeHeaders' => [], // additional header definition for AJAX requests exclusion
 ]);
 ```
 
 ### Server-sent Events
 
-Connects to SSE endpoint (provided in the extension) and watch specified directories and (or) files. Uses `Nette\Utils\Finder` under the hood, so you can setup Finder according to your needs.
+Connects to SSE endpoint (provided in the extension out of the box) and watch specified directories and (or) files. Uses `Nette\Utils\Finder` under the hood, so you can setup Finder according to your needs.
 
 Second section - marked `internal` is related to SSE itself. It's kind of selfexplanatory.
 
 ```php
 // minimal setup
 Common\Tracy\ReloadPanel('SSE', [   
-    // Finder
+    // Nette\Utils\Finder config
     'mask' => '*.*',
     'in' => null,
     'from' => null,
     'exclude' => null,
     'excludeDir' => null,
     // internal
-    'timeout' => 30,                // every script runs only for 30 seconds
-    'refreshRate' => 30,            
-    'watchInterval' => 2,
+    'excludeHeaders' => [], // additional header definition for AJAX requests exclusion
+    'timeout' => 30,        // SSE/Reloader.php max execution time
+    'watchInterval' => 2,   // loop sleep interval
 ]);
 ```
 
-### ExcludeHeaders
+### Filter ajax requests
 
-Additional check for request for which extension should return nothing. Basically extension should not render for AJAX requests. Because on every render it connects to LiveReload/SSE endpoint and that's not wanted on ajax requests.
+It is not desired to render tracy panel for AJAX requests. Basic AJAX requests are filtered out automatically, but if you send some additional AJAX requests, you can filter them out by specifying headers that are related to these requests.
 
-Provide any `key => value` pair for additional headers, which signal AJAX request.
+These headers should be specified in `excludedHeaders` property of `$config` as `$key: $value` pairs.
+
+Example of `local.neon`:
+```
+tracy:
+	bar:
+		- Mskocik\TracyReloader\ReloaderPanel('LR', [ 
+			https: true,
+			excludeHeaders: [
+				x-requested-with: swup
+			]
+		])
+```
