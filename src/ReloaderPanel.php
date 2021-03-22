@@ -12,10 +12,10 @@ class ReloaderPanel implements IBarPanel
         SERVER_SENT_EVENTS = 'SSE';
 
     private static $configDefaults = [
-        'mode' => 'LR',  // or can be 'SSE'
+        'mode' => 'LR',             // 'LR' is default, but can be 'SSE'
         'LR' => [
-            'https' => false,
-            'host' => null,
+            'https' => false,       // when accessing LiveReload server from https host
+            'host' => null,         // when NULL, pick visited hostname 
             'port' => 35729,
             'path' => 'livereload'
         ],
@@ -27,9 +27,10 @@ class ReloaderPanel implements IBarPanel
             'exclude' => null,
             'excludeDir' => null,
             // internal
-            'timeout' => 30,
+            'excludeHeaders' => [], // additional header definition for AJAX requests exclusion
+            'timeout' => 30,        // SSE/Reloader.php max execution time
+            'watchInterval' => 2,   // loop sleep interval
             'refreshRate' => 30,    // NOTE: not used
-            'watchInterval' => 2,
         ]
     ];
 
@@ -37,13 +38,11 @@ class ReloaderPanel implements IBarPanel
     private $mode;
     /** @var array */
     private $config = [];
-    /** @var array */
-    private $invalidHeaders = [];
     
     /** @var \Nette\Http\IRequest */
     private $request;
 
-    public function __construct(string $mode = 'LR', array $config = [], array $invalidHeaders = [], \Nette\Http\IRequest $request)
+    public function __construct(string $mode = 'LR', array $config = [], \Nette\Http\IRequest $request)
     {
         $this->mode = strtoupper($mode);
         if ($mode === static::LIVERELOAD && !isset($config['host'])) {
@@ -51,7 +50,6 @@ class ReloaderPanel implements IBarPanel
         }
         $modeConfig = array_merge(static::$configDefaults[$this->mode], $config);
         $this->config = $modeConfig;
-        $this->invalidHeaders = $invalidHeaders;
         $this->request = $request;
 
         $this->isSSE() && $this->handleRequest();
@@ -81,10 +79,8 @@ class ReloaderPanel implements IBarPanel
 
     public function isInvalidRequest(): bool
     {
-        if (!empty($this->invalidHeaders)) {
-            foreach ($this->invalidHeaders as $key => $value) {
-                if ($this->request->getHeader($key) === $value) return true;
-            }
+        foreach ($this->config['excludeHeaders'] as $key => $value) {
+            if ($this->request->getHeader($key) === $value) return true;
         }
         return $this->request->isAjax();
     }
