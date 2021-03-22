@@ -46,7 +46,7 @@ class ReloaderPanel implements IBarPanel
     public function __construct(string $mode = 'LR', array $config = [], array $invalidHeaders = [], \Nette\Http\IRequest $request)
     {
         $this->mode = strtoupper($mode);
-        if ($mode === 'livereload' && !isset($config['host'])) {
+        if ($mode === static::LIVERELOAD && !isset($config['host'])) {
             $config['host'] = $request->getUrl()->getHost();
         }
         $modeConfig = array_merge(static::$configDefaults[$this->mode], $config);
