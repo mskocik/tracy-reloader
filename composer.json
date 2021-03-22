@@ -1,0 +1,29 @@
+{
+    "name": "mskocik/tracy-reloader",
+    "description": "Automatic page refresh - watching changes with SSE or connect your LiveReload server",
+    "type": "library",
+    "homepage": "https://github.com/mskocik/tracy-reloader",
+    "require": {
+        "nette/utils": "^3.2",
+        "tracy/tracy": "^2.8",
+        "nette/http": "^3.1"
+    },
+    "keywords": [
+        "tracy",
+        "livereload",
+        "server-sent events",
+        "SSE"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Martin Skočík",
+            "email": "mskocik.dev@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Mskocik\\TracyReloader\\": "src/"
+        }
+    }
+}

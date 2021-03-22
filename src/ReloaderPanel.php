@@ -1,0 +1,105 @@
+<?php declare(strict_types=1);
+
+namespace Mskocik\TracyReloader;
+
+use Mskocik\TracyReloader\SSE\Reloader;
+use Tracy\IBarPanel;
+
+class ReloaderPanel implements IBarPanel
+{
+    const
+        LIVERELOAD = 'LR',
+        SERVER_SENT_EVENTS = 'SSE';
+
+    private static $configDefaults = [
+        'mode' => 'LR',  // or can be 'SSE'
+        'LR' => [
+            'https' => false,
+            'host' => null,
+            'port' => 35729,
+            'path' => 'livereload'
+        ],
+        'SSE' => [
+            // Finder
+            'mask' => '*.*',
+            'in' => null,
+            'from' => null,
+            'exclude' => null,
+            'excludeDir' => null,
+            // internal
+            'timeout' => 30,
+            'refreshRate' => 30,    // NOTE: not used
+            'watchInterval' => 2,
+        ]
+    ];
+
+    /** @var string */
+    private $mode;
+    /** @var array */
+    private $config = [];
+    /** @var array */
+    private $invalidHeaders = [];
+    
+    /** @var \Nette\Http\IRequest */
+    private $request;
+
+    public function __construct(string $mode = 'LR', array $config = [], array $invalidHeaders = [], \Nette\Http\IRequest $request)
+    {
+        $this->mode = strtoupper($mode);
+        if ($mode === 'livereload' && !isset($config['host'])) {
+            $config['host'] = $request->getUrl()->getHost();
+        }
+        $modeConfig = array_merge(static::$configDefaults[$this->mode], $config);
+        $this->config = $modeConfig;
+        $this->invalidHeaders = $invalidHeaders;
+        $this->request = $request;
+
+        $this->isSSE() && $this->handleRequest();
+    }
+
+    public function getTab(): string
+    {
+        if ($this->isInvalidRequest()) return null;
+        return \Nette\Utils\Helpers::capture(function () {
+            $isSSE = $this->isSSE();
+            $isLiveReload = !$isSSE;
+            $mode = $this->mode;
+            $config = $this->config;
+			require __DIR__ . '/templates/ReloadPanel.tab.phtml';
+		});
+    }
+    
+    public function getPanel()
+    {
+        if ($this->isInvalidRequest()) return null;
+        return \Nette\Utils\Helpers::capture(function () {
+			$mode = $this->mode;
+            $config = $this->config;
+			require __DIR__ . '/templates/ReloadPanel.panel.phtml';
+		});
+    }
+
+    public function isInvalidRequest(): bool
+    {
+        if (!empty($this->invalidHeaders)) {
+            foreach ($this->invalidHeaders as $key => $value) {
+                if ($this->request->getHeader($key) === $value) return true;
+            }
+        }
+        return $this->request->isAjax();
+    }
+
+    public function isSSE(): bool
+    {
+        return $this->mode === self::SERVER_SENT_EVENTS;
+    }
+
+    public function handleRequest(): void
+    {
+        $flag = $this->request->getQuery('tracy_reloader');
+        if ($flag && strtolower($flag) === 'sse') {
+            $sseReloder = new Reloader($this->config);
+            $sseReloder->start();
+        }
+    }
+}

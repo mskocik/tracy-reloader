@@ -1,0 +1,95 @@
+<?php declare(strict_types=1); ?>
+<style>
+    #tracy-debug #lr-ext-icon svg                      { fill: #ccc }
+    #tracy-debug #lr-ext-icon.is-connected svg         { fill: #009BBF; }
+    #tracy-debug #lr-ext-icon                          { color: #888 }
+    #tracy-debug #lr-ext-icon.is-connected             { color: #222 }
+    #tracy-debug #lr-ext-icon.is-error                 { color: red }
+    #tracy-debug #lr-ext-icon.is-error svg             { fill: red }
+</style>
+<span title="Not connected " id="lr-ext-icon">
+    <svg viewBox="0 0 22 22">
+        <path d="M5.655 3.84L3.816 2h5.65v5.651L7.445 5.63A6.493 6.493 0 004.605 11 6.503 6.503 0 0011 17.499V20c-4.919-.057-8.895-4.068-8.895-9a8.987 8.987 0 013.55-7.16zm10.69 14.32L18.184 20h-5.65v-5.651l2.021 2.021a6.493 6.493 0 002.84-5.37A6.503 6.503 0 0011 4.501V2c4.919.057 8.895 4.068 8.895 9a8.987 8.987 0 01-3.55 7.16zM11 8.5a2.5 2.5 0 010 5 2.5 2.5 0 010-5z"/>
+    </svg>
+    <span><?= $mode ?></span>
+</span>
+<script>
+/**
+ * LiveReload script
+ */
+<?php if ($isLiveReload): ?>
+(function() {
+    if (window.Tracy.LR_ext) return;
+    const toggleConnectStatus = (value) => () => { 
+        const el = document.getElementById('lr-ext-icon');
+        if (el) {
+            el.classList.toggle('is-connected', value);
+            el.title = value ? 'Connected 🟢' : 'Disconnected 🔴';
+        } 
+    };
+
+    window.Tracy.LR_ext = true;
+    window.LiveReloadOptions = JSON.parse('<?= json_encode($config) ?>');
+    /** minified livereload-js */
+    <?php include_once dirname(__DIR__) . '/assets/livereload.min.js' ?>
+    /** additional event handlers */
+    document.addEventListener('LiveReloadConnect', toggleConnectStatus(true));
+    document.addEventListener('LiveReloadDisconnect', toggleConnectStatus(false));
+})();
+/**
+ * SSE script
+ */
+<?php else: ?>
+(function () {
+    const toggleConnectStatus = value => { 
+        const el = document.getElementById('lr-ext-icon');
+        if (el) {
+            el.classList.toggle('is-connected', value);
+            el.title = value ? 'Connected 🟢' : 'Disconnected 🔴';
+        } 
+    };
+    window.Tracy.LR_ext = true;
+
+    const EVENT_SOURCE_ENDPOINT = `${location.search === '' ? '?' : '&'}tracy_reloader=sse`;
+    let ServerEvents;
+    setTimeout(() => {
+        ServerEvents = new EventSource(EVENT_SOURCE_ENDPOINT);
+        ServerEvents.addEventListener('message', e => {
+            const data = JSON.parse(e.data);
+            handleServerMessage(data);
+        });
+        ServerEvents.addEventListener('error', e => {
+            handleServerError(e);
+        });
+        
+        window.onbeforeunload = ServerEvents.close;
+    }, 500);
+
+    handleServerMessage = data => {
+        if (data && data.action) {
+            if (data.action === "start") {
+                toggleConnectStatus(true);
+            }
+            if (data.action === "reload") {
+                ServerEvents.close();
+                setTimeout(() => window.location.reload(), 250);
+            }
+            if (data.action === 'error') {
+                toggleConnectStatus(false);
+                const el = document.getElementById('lr-ext-icon');
+                if (el) {
+                    el.classList.add('is-error');
+                    el.parentElement.onmouseover = () => alert(data.message);
+                }
+                ServerEvents.close();
+            }
+        }
+    }
+
+    handleServerError = error => {
+        // console.error(error);
+    }
+
+})();
+<?php endif; ?>
+</script>

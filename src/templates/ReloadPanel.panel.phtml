@@ -1,0 +1,19 @@
+<?php declare(strict_types=1);
+
+use Tracy\Dumper;
+
+?>
+<h1>Reload Panel</h1>
+
+<div class="tracy-livereload-panel">
+    <table>
+        <tr>
+            <th>Mode:</th>
+            <td><?= $mode ?></td>
+        </tr>
+        <tr>
+            <th>Options</th>
+            <td><?= \Tracy\Dumper::toHtml($config) ?></td>
+        </tr>
+    </table>
+</div>
