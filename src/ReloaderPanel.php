@@ -17,7 +17,9 @@ class ReloaderPanel implements IBarPanel
             'https' => false,       // when accessing LiveReload server from https host
             'host' => null,         // when NULL, pick visited hostname 
             'port' => 35729,
-            'path' => 'livereload'
+            'path' => 'livereload',
+            // internal
+            'excludeHeaders' => [], // additional header definition for AJAX requests exclusion
         ],
         'SSE' => [
             // Finder
