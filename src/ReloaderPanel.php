@@ -57,7 +57,7 @@ class ReloaderPanel implements IBarPanel
         $this->isSSE() && $this->handleRequest();
     }
 
-    public function getTab(): string
+    public function getTab(): ?string
     {
         if ($this->isInvalidRequest()) return null;
         return \Nette\Utils\Helpers::capture(function () {
@@ -69,7 +69,7 @@ class ReloaderPanel implements IBarPanel
 		});
     }
     
-    public function getPanel()
+    public function getPanel(): ?string
     {
         if ($this->isInvalidRequest()) return null;
         return \Nette\Utils\Helpers::capture(function () {
