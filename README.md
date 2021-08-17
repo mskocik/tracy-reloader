@@ -11,7 +11,7 @@ composer require --dev mskocik/tracy-reloader
 ```
 tracy:
 	bar:
-		- Mskocik\TracyReloader\ReloadPanel(<mode>, <options>, <excludeHeaders>)
+		- Mskocik\TracyReloader\ReloaderPanel(<mode>, <options>, <excludeHeaders>)
 ```
 
 
@@ -23,7 +23,7 @@ Extension supports 2 modes: `LiveReload` or `Server Sent Events`
 
 ```php
 // minimal setup
-Mskocik\TracyReloader\ReloadPanel('LR', [
+Mskocik\TracyReloader\ReloaderPanel('LR', [
     'https' => false,       // when accessing LiveReload server from https host
     'host' => null,         // when NULL, pick visited hostname 
     'port' => 35729,
@@ -41,7 +41,7 @@ Second section - marked `internal` is related to SSE itself. It's kind of selfex
 
 ```php
 // minimal setup
-Mskocik\TracyReloader\ReloadPanel('SSE', [   
+Mskocik\TracyReloader\ReloaderPanel('SSE', [   
     // Nette\Utils\Finder config
     'mask' => '*.*',
     'in' => null,
