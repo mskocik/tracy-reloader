@@ -44,7 +44,7 @@ class ReloaderPanel implements IBarPanel
     /** @var \Nette\Http\IRequest */
     private $request;
 
-    public function __construct(string $mode = 'LR', array $config = [], \Nette\Http\IRequest $request)
+    public function __construct(\Nette\Http\IRequest $request, string $mode = 'LR', array $config = [])
     {
         $this->mode = strtoupper($mode);
         if ($mode === static::LIVERELOAD && !isset($config['host'])) {
