@@ -17,7 +17,6 @@
 /**
  * LiveReload script
  */
-<?php if ($isLiveReload): ?>
 (function() {
     if (window.Tracy.LR_ext) return;
     const toggleConnectStatus = (value) => () => { 
@@ -36,60 +35,4 @@
     document.addEventListener('LiveReloadConnect', toggleConnectStatus(true));
     document.addEventListener('LiveReloadDisconnect', toggleConnectStatus(false));
 })();
-/**
- * SSE script
- */
-<?php else: ?>
-(function () {
-    const toggleConnectStatus = value => { 
-        const el = document.getElementById('lr-ext-icon');
-        if (el) {
-            el.classList.toggle('is-connected', value);
-            el.title = value ? 'Connected 🟢' : 'Disconnected 🔴';
-        } 
-    };
-    window.Tracy.LR_ext = true;
-
-    const EVENT_SOURCE_ENDPOINT = `${location.search === '' ? '?' : '&'}tracy_reloader=sse`;
-    let ServerEvents;
-    setTimeout(() => {
-        ServerEvents = new EventSource(EVENT_SOURCE_ENDPOINT);
-        ServerEvents.addEventListener('message', e => {
-            const data = JSON.parse(e.data);
-            handleServerMessage(data);
-        });
-        ServerEvents.addEventListener('error', e => {
-            handleServerError(e);
-        });
-        
-        window.onbeforeunload = ServerEvents.close;
-    }, 500);
-
-    handleServerMessage = data => {
-        if (data && data.action) {
-            if (data.action === "start") {
-                toggleConnectStatus(true);
-            }
-            if (data.action === "reload") {
-                ServerEvents.close();
-                setTimeout(() => window.location.reload(), 250);
-            }
-            if (data.action === 'error') {
-                toggleConnectStatus(false);
-                const el = document.getElementById('lr-ext-icon');
-                if (el) {
-                    el.classList.add('is-error');
-                    el.parentElement.onmouseover = () => alert(data.message);
-                }
-                ServerEvents.close();
-            }
-        }
-    }
-
-    handleServerError = error => {
-        // console.error(error);
-    }
-
-})();
-<?php endif; ?>
 </script>

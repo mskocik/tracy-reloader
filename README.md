@@ -1,5 +1,5 @@
 # Tracy Reloader
-Tracy extension for automatic page live update (LiveReload) or refresh (LiveReload and SSE).
+Tracy extension for automatic page live update or refresh through LiveReload
 
 ## Installation
 ```
@@ -33,39 +33,18 @@ Mskocik\TracyReloader\ReloaderPanel('LR', [
 ]);
 ```
 
-### Server-sent Events
-
-Connects to SSE endpoint (provided in the extension out of the box) and watch specified directories and (or) files. Uses `Nette\Utils\Finder` under the hood, so you can setup Finder according to your needs.
-
-Second section - marked `internal` is related to SSE itself. It's kind of selfexplanatory.
-
-```php
-// minimal setup
-Mskocik\TracyReloader\ReloaderPanel('SSE', [   
-    // Nette\Utils\Finder config
-    'mask' => '*.*',
-    'in' => null,
-    'from' => null,
-    'exclude' => null,
-    'excludeDir' => null,
-    // internal
-    'excludeHeaders' => [], // additional header definition for AJAX requests exclusion
-    'timeout' => 30,        // SSE/Reloader.php max execution time
-    'watchInterval' => 2,   // loop sleep interval
-]);
-```
-
 ### Filter ajax requests
 
-It is not desired to render tracy panel for AJAX requests. Basic AJAX requests are filtered out automatically, but if you send some additional AJAX requests, you can filter them out by specifying headers that are related to these requests.
+It is not desired to render Reloader panel for AJAX requests. Because you want only ONE active instance, which should 
+happen only on full page load/reload. Basic AJAX requests are filtered out automatically, but if you send some additional AJAX requests, you can filter them out by specifying headers that are related to these requests.
 
 These headers should be specified in `excludedHeaders` property of `$config` as `$key: $value` pairs.
 
-Example of `local.neon`:
+Example of `local.neon`, when app is using [swup.js](https://swup.js.org/) for app navigation:
 ```
 tracy:
 	bar:
-		- Mskocik\TracyReloader\ReloaderPanel('LR', [ 
+		- Mskocik\TracyReloader\ReloaderPanel(mode: 'LR', config: [ 
 			https: true,
 			excludeHeaders: [
 				x-requested-with: swup
